@@ -168,6 +168,7 @@ class Engine:
         Returns:
             Trainer: Lightning Trainer.
         """
+        import pdb
         if not self._trainer:
             msg = "``self.trainer`` is not assigned yet."
             raise UnassignedError(msg)
@@ -523,7 +524,7 @@ class Engine:
         """
         if ckpt_path:
             ckpt_path = Path(ckpt_path).resolve()
-
+        
         self._setup_workspace(
             model=model,
             train_dataloaders=train_dataloaders,
@@ -540,6 +541,7 @@ class Engine:
         else:
             self.trainer.fit(model, train_dataloaders, val_dataloaders, datamodule, ckpt_path)
 
+    
     def validate(
         self,
         model: AnomalyModule | None = None,

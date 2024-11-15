@@ -86,7 +86,6 @@ class AUROC(BinaryROC):
         ylabel = "True Positive Rate"
         loc = "lower right"
         title = "ROC"
-
         fig, axis = plot_figure(fpr, tpr, auroc, xlim, ylim, xlabel, ylabel, loc, title)
 
         axis.plot(

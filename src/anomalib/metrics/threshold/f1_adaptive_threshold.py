@@ -3,6 +3,9 @@
 # Copyright (C) 2023-2024 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
+import pdb
+
+
 import logging
 
 import torch
@@ -77,6 +80,7 @@ class F1AdaptiveThreshold(BinaryPrecisionRecallCurve, Threshold):
             self.value = thresholds
         else:
             self.value = thresholds[torch.argmax(f1_score)]
+            print("FinalThreshold Value from F1AdaptiveMetric",self.value)
         return self.value
 
     def __repr__(self) -> str:

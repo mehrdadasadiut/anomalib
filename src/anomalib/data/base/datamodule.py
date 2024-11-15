@@ -2,6 +2,8 @@
 
 # Copyright (C) 2022-2024 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
+import pdb
+import inspect
 
 import logging
 from abc import ABC, abstractmethod
@@ -131,15 +133,20 @@ class AnomalibDataModule(LightningDataModule, ABC):
             stage: str | None:  Train/Val/Test stages.
                 Defaults to ``None``.
         """
+        
         has_subset = any(hasattr(self, subset) for subset in ["train_data", "val_data", "test_data"])
         if not has_subset or not self._is_setup:
+            #Setup the train/test set.
             self._setup(stage)
+
+            #Split the test to test and validatation set.
             self._create_test_split()
             self._create_val_split()
             if isinstance(stage, TrainerFn):
                 # only set the flag if the stage is a TrainerFn, which means the setup has been called from a trainer
                 self._is_setup = True
 
+    #this abstract method is implemented within child class.
     @abstractmethod
     def _setup(self, _stage: str | None = None) -> None:
         """Set up the datasets and perform dynamic subset splitting.

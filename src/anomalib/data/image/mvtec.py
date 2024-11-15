@@ -24,7 +24,7 @@ References:
 
 # Copyright (C) 2022-2024 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
-
+import pdb
 import logging
 from collections.abc import Sequence
 from pathlib import Path
@@ -232,7 +232,9 @@ class MVTecDataset(AnomalibDataset):
         self.root_category = Path(root) / Path(category)
         self.category = category
         self.split = split
+
         self.samples = make_mvtec_dataset(self.root_category, split=self.split, extensions=IMG_EXTENSIONS)
+
 
 
 class MVTec(AnomalibDataModule):
@@ -309,7 +311,8 @@ class MVTec(AnomalibDataModule):
         root: Path | str = "./datasets/MVTec",
         category: str = "bottle",
         train_batch_size: int = 32,
-        eval_batch_size: int = 32,
+        #I am changing it to 100 (maximum)
+        eval_batch_size: int = 100,
         num_workers: int = 8,
         task: TaskType | str = TaskType.SEGMENTATION,
         image_size: tuple[int, int] | None = None,
@@ -318,6 +321,7 @@ class MVTec(AnomalibDataModule):
         eval_transform: Transform | None = None,
         test_split_mode: TestSplitMode | str = TestSplitMode.FROM_DIR,
         test_split_ratio: float = 0.2,
+        #I am changing SAME_AS_TEST to FROM_TRAIN - backed to SAME_AS_TEST
         val_split_mode: ValSplitMode | str = ValSplitMode.SAME_AS_TEST,
         val_split_ratio: float = 0.5,
         seed: int | None = None,
@@ -367,6 +371,10 @@ class MVTec(AnomalibDataModule):
             root=self.root,
             category=self.category,
         )
+
+
+
+
 
     def prepare_data(self) -> None:
         """Download the dataset if not available.
