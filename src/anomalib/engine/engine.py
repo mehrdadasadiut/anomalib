@@ -168,7 +168,6 @@ class Engine:
         Returns:
             Trainer: Lightning Trainer.
         """
-        import pdb
         if not self._trainer:
             msg = "``self.trainer`` is not assigned yet."
             raise UnassignedError(msg)

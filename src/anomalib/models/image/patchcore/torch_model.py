@@ -55,6 +55,8 @@ class PatchcoreModel(DynamicBufferMixin, nn.Module):
 
         self.register_buffer("memory_bank", torch.Tensor())
         self.memory_bank: torch.Tensor
+        #Added by Mehrdad
+        self.memory_bank_idxs = []
 
     def forward(self, input_tensor: torch.Tensor) -> torch.Tensor | dict[str, torch.Tensor]:
         """Return Embedding during training, or a tuple of anomaly map and anomaly score during testing.
@@ -85,9 +87,11 @@ class PatchcoreModel(DynamicBufferMixin, nn.Module):
 
         batch_size, _, width, height = embedding.shape
         embedding = self.reshape_embedding(embedding)
+        #print('generated embeddings:',embedding.shape)
 
         if self.training:
             output = embedding
+            #output = {"emb": embedding, "patch_scores": patch_scores}
         else:
             # apply nearest neighbor search
             patch_scores, locations = self.nearest_neighbors(embedding=embedding, n_neighbors=1)
@@ -100,9 +104,8 @@ class PatchcoreModel(DynamicBufferMixin, nn.Module):
             patch_scores = patch_scores.reshape((batch_size, 1, width, height))
             # get anomaly map
             anomaly_map = self.anomaly_map_generator(patch_scores, output_size)
-
-            output = {"anomaly_map": anomaly_map, "pred_score": pred_score}
-
+            #patch_scores added as part of output by Mehrdad
+            output = {"anomaly_map": anomaly_map, "pred_score": pred_score, "embedding": embedding, 'patch_scores': patch_scores}
         return output
 
     def generate_embedding(self, features: dict[str, torch.Tensor]) -> torch.Tensor:
@@ -148,8 +151,9 @@ class PatchcoreModel(DynamicBufferMixin, nn.Module):
         """
         # Coreset Subsampling
         sampler = KCenterGreedy(embedding=embedding, sampling_ratio=sampling_ratio)
-        coreset = sampler.sample_coreset()
+        coreset, idxs = sampler.sample_coreset()
         self.memory_bank = coreset
+        self.memory_bank_idxs = idxs
 
     @staticmethod
     def euclidean_dist(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:

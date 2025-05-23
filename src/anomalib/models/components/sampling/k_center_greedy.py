@@ -127,4 +127,4 @@ class KCenterGreedy:
             torch.Size([219, 1536])
         """
         idxs = self.select_coreset_idxs(selected_idxs)
-        return self.embedding[idxs]
+        return self.embedding[idxs], idxs

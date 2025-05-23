@@ -314,6 +314,7 @@ class _ImageGrid:
         # The dimension of image returned by tostring_rgb() does not match the dimension of the canvas
         matplotlib.use("Agg")
 
+
         self.figure, self.axis = plt.subplots(1, num_cols, figsize=figure_size)
         self.figure.subplots_adjust(right=0.9)
 

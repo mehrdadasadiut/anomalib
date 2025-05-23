@@ -49,6 +49,10 @@ class F1AdaptiveThreshold(BinaryPrecisionRecallCurve, Threshold):
 
         self.add_state("value", default=torch.tensor(default_value), persistent=True)
         self.value = torch.tensor(default_value)
+        #Added by Mehrdad for normalized_threshold ([0 1])
+        self.normalized_threshold = torch.tensor(default_value)
+        self.threshold_max = torch.tensor(default_value)
+        self.threshold_min = torch.tensor(default_value)
 
     def compute(self) -> torch.Tensor:
         """Compute the threshold that yields the optimal F1 score.
@@ -80,6 +84,10 @@ class F1AdaptiveThreshold(BinaryPrecisionRecallCurve, Threshold):
             self.value = thresholds
         else:
             self.value = thresholds[torch.argmax(f1_score)]
+            #Added by Mehrdad, compute and return normalized_threshold as well.
+            self.threshold_max = max(thresholds)
+            self.threshold_min = min(thresholds)
+            self.normalized_threshold = (self.value - min(thresholds)) / (max(thresholds) - min(thresholds))
             print("FinalThreshold Value from F1AdaptiveMetric",self.value)
         return self.value
 

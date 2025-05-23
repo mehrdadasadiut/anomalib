@@ -24,7 +24,6 @@ References:
 
 # Copyright (C) 2022-2024 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
-import pdb
 import logging
 from collections.abc import Sequence
 from pathlib import Path
@@ -321,7 +320,6 @@ class MVTec(AnomalibDataModule):
         eval_transform: Transform | None = None,
         test_split_mode: TestSplitMode | str = TestSplitMode.FROM_DIR,
         test_split_ratio: float = 0.2,
-        #I am changing SAME_AS_TEST to FROM_TRAIN - backed to SAME_AS_TEST
         val_split_mode: ValSplitMode | str = ValSplitMode.SAME_AS_TEST,
         val_split_ratio: float = 0.5,
         seed: int | None = None,

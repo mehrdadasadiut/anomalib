@@ -9,7 +9,7 @@ Paper https://arxiv.org/abs/2106.08265.
 import logging
 from collections.abc import Sequence
 from typing import Any
-
+from pathlib import Path
 import torch
 from lightning.pytorch.utilities.types import STEP_OUTPUT
 from torchvision.transforms.v2 import CenterCrop, Compose, Normalize, Resize, Transform
@@ -45,6 +45,8 @@ class Patchcore(MemoryBankMixin, AnomalyModule):
         pre_trained: bool = True,
         coreset_sampling_ratio: float = 0.1,
         num_neighbors: int = 9,
+        #Added by Mehrdad
+        contamination=0.0,
     ) -> None:
         super().__init__()
 
@@ -54,8 +56,13 @@ class Patchcore(MemoryBankMixin, AnomalyModule):
             layers=layers,
             num_neighbors=num_neighbors,
         )
-        self.coreset_sampling_ratio = coreset_sampling_ratio
+        self.coreset_sampling_ratio = coreset_sampling_ratio      
         self.embeddings: list[torch.Tensor] = []
+        ###Added by Mehrdad
+        self.contamination=contamination
+        self.labels = []
+        self.paths = []
+        self.ds_in = '/Users/mehrdad/Programs/data/dataset'
 
     @staticmethod
     def configure_optimizers() -> None:
@@ -78,21 +85,25 @@ class Patchcore(MemoryBankMixin, AnomalyModule):
             dict[str, np.ndarray]: Embedding Vector
         """
         del args, kwargs  # These variables are not used.
-
+    # Mehrdad changed this to a dictionary, since I also want patch scores for training instances.
+    #It was just a single embeddings.
         embedding = self.model(batch["image"])
+        #train - torch.Size([3136, 1536]) , validation - torch.Size([2352, 1536])
         self.embeddings.append(embedding)
+        #self.embeddings.append(embedding['emb'])
 
     def fit(self) -> None:
         """Apply subsampling to the embedding collected from the training set."""
         logger.info("Aggregating the embedding extracted from the training set.")
         embeddings = torch.vstack(self.embeddings)
+        #added by Mehrdad
+        self.coreset_ready_embeddings = self.embeddings
 
         logger.info("Applying core-set subsampling to get the embedding.")
         self.model.subsample_embedding(embeddings, self.coreset_sampling_ratio)
 
     def validation_step(self, batch: dict[str, str | torch.Tensor], *args, **kwargs) -> STEP_OUTPUT:
         """Get batch of anomaly maps from input image batch.
-
         Args:
             batch (dict[str, str | torch.Tensor]): Batch containing image filename, image, label and mask
             args: Additional arguments.
@@ -103,14 +114,21 @@ class Patchcore(MemoryBankMixin, AnomalyModule):
         """
         # These variables are not used.
         del args, kwargs
-
         # Get anomaly maps and predicted scores from the model.
         output = self.model(batch["image"])
+        #Added by Mehrdad, extract the labels while predictions.
+        self.paths.append(batch['image_path'])
+        for image_path in batch['image_path']:
+            label = Path(image_path).parent.name  # Extract the parent directory name (e.g., 'good' or 'bad')
+            self.labels.append(label)
 
         # Add anomaly maps and predicted scores to the batch.
         batch["anomaly_maps"] = output["anomaly_map"]
         batch["pred_scores"] = output["pred_score"]
-
+        #Added by Mehrdad for getting the embeddings and patchscores for batch + dummy for non-normalized pred-score
+        batch["embedding"] = output["embedding"]
+        batch['patch_scores'] = output['patch_scores']
+        batch['dummy'] = output["pred_score"]
         return batch
 
     @property

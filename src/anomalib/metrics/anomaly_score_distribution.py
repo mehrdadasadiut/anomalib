@@ -43,8 +43,7 @@ class AnomalyScoreDistribution(Metric):
     def compute(self) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
         """Compute stats."""
         anomaly_scores = torch.hstack(self.anomaly_scores)
-        anomaly_scores = torch.log(anomaly_scores)
-
+        anomaly_scores = torch.log(anomaly_scores)       
         self.image_mean = anomaly_scores.mean()
         self.image_std = anomaly_scores.std()
 
